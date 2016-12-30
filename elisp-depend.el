@@ -134,8 +134,7 @@
   :group 'tools)
 
 ;;;###autoload
-(defcustom elisp-depend-directory-list
-  '("/usr/share/emacs/")
+(defcustom elisp-depend-directory-list '("/usr/share/emacs/")
   "List of directories that search should ignore."
   :type 'list
   :group 'elisp-depend)
@@ -205,8 +204,7 @@ Every library that has a parent directory in
   "Return the tree given by reading the buffer as elisp.
 The top level is presented as a list, as if the buffer contents had been
 \(list CONTENTS...\)"
-  (let*
-      ((tree '()))
+  (let* ((tree '()))
     (with-current-buffer (or buffer (current-buffer))
       (save-excursion
         (save-restriction
@@ -257,23 +255,18 @@ are mentioned in them."
 
 (defun elisp-depend-let-form->sym-list (sexp)
   "Gets syms from a let form like \(LET ((NAME BODY)...) BODY...\)."
-
-  (let*
-      ((binding-forms (cadr sexp)))
-
-    (append
-     (apply #'append
-            (mapcar
-             #'(lambda (b-form)
-                 (if (consp b-form)
-                     (elisp-depend-sexp->sym-list (cadr b-form))
-                   '()))
-             binding-forms))
-     (elisp-depend-get-syms-recurse (cddr sexp) 0))))
+  (let* ((binding-forms (cadr sexp)))
+    (append (apply #'append
+                   (mapcar
+                    #'(lambda (b-form)
+                        (if (consp b-form)
+                            (elisp-depend-sexp->sym-list (cadr b-form))
+                          '()))
+                    binding-forms))
+            (elisp-depend-get-syms-recurse (cddr sexp) 0))))
 
 (defconst elisp-depend-special-explorers
-  '(
-    (quote ignore)
+  '((quote ignore)
     (\`
      (lambda (sexp)
        (cons
@@ -291,11 +284,10 @@ are mentioned in them."
               (elisp-depend-get-syms-recurse sexp 2)))
 
     (let elisp-depend-let-form->sym-list)
-    (let* elisp-depend-let-form->sym-list)
-    )
+    (let* elisp-depend-let-form->sym-list))
   "Alist of symbols to expand specially, mapping from symbol to
 explore function.  Explore functions take one argument, a sexp, and
-return a list of symbols." )
+return a list of symbols.")
 
 (defun elisp-depend-sexp->sym-list (sexp)
   "Return all the referenced symbols from the sexp, as a list.
@@ -305,48 +297,36 @@ contain duplicates.  It does not distinguish symbols called as
 functions from variables.
 
 This function does not expand macros."
-
   ;; Don't want to drag `cl' in, so it's a tree of `if's.
-  (if
-      (symbolp sexp)
+  (if (symbolp sexp)
       (list `(var ,sexp))
     (if (consp sexp)
-        (let
-            ((functor (car sexp)))
-          (if
-              (not (symbolp functor))
+        (let ((functor (car sexp)))
+          (if (not (symbolp functor))
               ;; Functor is a lambda or similar.
               (elisp-depend-get-syms-recurse sexp 0)
-            (let*
-                ((explorer
-                  (assoc functor elisp-depend-special-explorers)))
+            (let* ((explorer (assoc functor elisp-depend-special-explorers)))
               (if explorer
                   (funcall (cadr explorer) sexp)
-                (cons
-                 `(func ,functor)
-                 (elisp-depend-get-syms-recurse sexp 1))))))
+                (cons `(func ,functor)
+                      (elisp-depend-get-syms-recurse sexp 1))))))
       ;; It's neither symbol nor form, so there are no symbols in it.
       '())))
-
 
 ;; Translate symbols to requirements
 
 (defun elisp-depend-sym-list->dependencies (sym-list current-filename built-in see-vars)
   ""
-
-  (let
-      ((symbol-seen '())
-       (dependencies '()))
+  (let ((symbol-seen '())
+        (dependencies '()))
     ;; Poor-man's dolist
     (while sym-list
-      (let*
-          (  (el (car sym-list))
+      (let* ((el (car sym-list))
              (type (car el))
              (symbol (cadr el))
              ;; Poor-man's and-let*.  These get set and checked below.
              filepath filename)
-        (if
-            (and
+        (if (and
              ;; Haven't already treated it
              (not (memq symbol symbol-seen))
              ;; It's a function, or we're allowing vars.
@@ -363,19 +343,14 @@ This function does not expand macros."
                t)
              ;; It's not built in or we're allowing built-ins
              (or built-in
-                 (not
-                  (elisp-depend-match-built-in-library
-                   filepath))))
-            (let
-                ((dentry (assoc filepath dependencies)))
+                 (not (elisp-depend-match-built-in-library filepath))))
+            (let ((dentry (assoc filepath dependencies)))
               (if dentry
                   (setcdr dentry (cons symbol (cdr dentry)))
                 (setq dependencies
-                      (cons
-                       (cons filepath (list symbol))
-                       dependencies))))))
+                      (cons (cons filepath (list symbol))
+                            dependencies))))))
       (setq sym-list (cdr sym-list)))
-    ;;
     dependencies))
 
 (defun elisp-depend-map (&optional buffer built-in)
@@ -383,52 +358,40 @@ This function does not expand macros."
 If BUFFER is nil, use current buffer.
 If BUILT-IN is non-nil, return built-in library information.
 Return depend map as format: (filepath symbol-A symbol-B symbol-C)."
-  (let*
-      (
-       (tree (elisp-depend-read-tree buffer))
-       (sym-list (elisp-depend-get-syms-recurse tree 0))
-       (filename (buffer-file-name buffer))
-       (dependencies
-        (elisp-depend-sym-list->dependencies
-         sym-list
-         (if filename
-             (elisp-depend-filename filename)
-           nil)
-         built-in
-         nil)))
-
+  (let* ((tree (elisp-depend-read-tree buffer))
+         (sym-list (elisp-depend-get-syms-recurse tree 0))
+         (filename (buffer-file-name buffer))
+         (dependencies
+          (elisp-depend-sym-list->dependencies
+           sym-list
+           (if filename
+               (elisp-depend-filename filename)
+             nil)
+           built-in
+           nil)))
     dependencies))
-
 
 (defun elisp-depend-get-load-history-line (path-sans-ext extension)
   "Return line in load-history correspoding to PATH-SANS-EXT with
    EXTENSION.
 Return nil if there is none."
-  (assoc
-   (concat path-sans-ext extension)
-   load-history))
+  (assoc (concat path-sans-ext extension)
+         load-history))
 
 (defun elisp-depend-filename (fullpath)
   "Return filename without extension and path.
 FULLPATH is the full path of file."
-
-  (let*
-      (
-       (true-path-sans-ext
-        (file-name-sans-extension
-         (file-truename fullpath)))
-       (file-history
-        (cdr
-         (or
-          (elisp-depend-get-load-history-line
-           true-path-sans-ext ".elc")
-          (elisp-depend-get-load-history-line
-           true-path-sans-ext ".el"))))
-       (lib-name
-        (when file-history
-          (cdr
-           (assq 'provide file-history)))))
-
+  (let* ((true-path-sans-ext
+          (file-name-sans-extension
+           (file-truename fullpath)))
+         (file-history
+          (cdr (or (elisp-depend-get-load-history-line
+                    true-path-sans-ext ".elc")
+                   (elisp-depend-get-load-history-line
+                    true-path-sans-ext ".el"))))
+         (lib-name
+          (when file-history
+            (cdr (assq 'provide file-history)))))
     (if lib-name
         (symbol-name lib-name)
       ;;Fallback: Just use the base filename
