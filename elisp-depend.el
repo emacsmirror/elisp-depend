@@ -126,6 +126,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 ;;; Options
 
 ;;;###autoload
@@ -237,8 +239,7 @@ A proper list is a list ending with a nil cdr, not with an atom "
   "Gets syms from a form that ignores the first N arguments and
 recurses on the rest."
   (if (elisp-depend-proper-list-p sexp)
-      (apply #'append
-             (mapcar #'elisp-depend-sexp->sym-list (nthcdr n sexp)))
+      (cl-mapcan #'elisp-depend-sexp->sym-list (nthcdr n sexp))
     ;; If it's a dotted list, complain.
     (error "Code contains a dotted list not backquoted: %s" sexp)))
 
@@ -256,12 +257,10 @@ are mentioned in them."
 (defun elisp-depend-let-form->sym-list (sexp)
   "Gets syms from a let form like \(LET ((NAME BODY)...) BODY...\)."
   (let ((binding-forms (cadr sexp)))
-    (append (apply #'append
-                   (mapcar
-                    (lambda (b-form)
-                      (and (consp b-form)
-                           (elisp-depend-sexp->sym-list (cadr b-form))))
-                    binding-forms))
+    (append (cl-mapcan (lambda (b-form)
+                         (and (consp b-form)
+                              (elisp-depend-sexp->sym-list (cadr b-form))))
+                       binding-forms)
             (elisp-depend-get-syms-recurse (cddr sexp) 0))))
 
 (defconst elisp-depend-special-explorers
