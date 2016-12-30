@@ -49,7 +49,7 @@
 ;; `elisp-depend-insert-comment'        insert depends comment.
 ;;
 
-;;; Installation:
+;;;; Installation:
 ;;
 ;; Put elisp-depend.el to your load-path.
 ;; The load-path is usually ~/elisp/.
@@ -71,7 +71,7 @@
 ;; (setq elisp-depend-directory-list '("YourEmacsDirectory"))
 ;;
 
-;;; Customize:
+;;;; Customize:
 ;;
 ;; `elisp-depend-directory-list' the install directory of emacs.
 ;; Or you can add others directory that you want filter.
@@ -80,7 +80,8 @@
 ;;      M-x customize-group RET elisp-depend RET
 ;;
 
-;;; Change log:
+;;;; Change log:
+;;
 ;; 2012/04/20
 ;;      * Switched to `read' instead of parsing the file mnaually.
 
@@ -109,13 +110,13 @@
 ;;      * First released.
 ;;
 
-;;; Acknowledgements:
+;;;; Acknowledgements:
 ;;
 ;;      Drew Adams      <drew.adams@oracle.com>
 ;;              For advice for compatibility Emacs 20.
 ;;
 
-;;; TODO
+;;;; TODO
 ;;
 ;;      Fix local-variable problem:
 ;;          If the some local-variable (such as lambda sentence)
@@ -123,12 +124,10 @@
 ;;          information.
 ;;
 
-;;; Require
-;; (None)
-
 ;;; Code:
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Customize ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Options
+
 ;;;###autoload
 (defgroup elisp-depend nil
   "Parse depend library of elisp file."
@@ -141,7 +140,7 @@
   :type 'list
   :group 'elisp-depend)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Interactive Functions. ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Commands
 
 ;;;###autoload
 (defun elisp-depend-print-dependencies (&optional built-in)
@@ -200,7 +199,7 @@ Every library that has a parent directory in
             (insert (format "`%s' " (elisp-depend-filename (car element))))))
       (message "Doesn't need any extra libraries."))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Utilities Functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Functions
 
 (defun elisp-depend-read-tree (&optional buffer)
    "Return the tree given by reading the buffer as elisp.
@@ -230,7 +229,9 @@ A proper list is a list ending with a nil cdr, not with an atom "
 	 (setq list (cdr list)))
       (null list)))
 
-;; Exploration helpers.  These generally call
+;;;; Exploration helpers.
+
+;; These generally call
 ;; `elisp-depend-sexp->sym-list', implicitly recursing.  They do not
 ;; attempt to skip symbols that are bound by arglists, let forms, etc.
 
@@ -448,6 +449,3 @@ FULLPATH is the full path of file."
 (provide 'elisp-depend)
 
 ;;; elisp-depend.el ends here
-
-;;; LocalWords:  YourEmacsDirectory filepath dentry deps sym featurep fullpath
-;;; LocalWords:  FooFile elc subr
