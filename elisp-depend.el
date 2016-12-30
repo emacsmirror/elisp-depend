@@ -205,7 +205,7 @@ Every library that has a parent directory in
   "Return the tree given by reading the buffer as elisp.
 The top level is presented as a list, as if the buffer contents had been
 \(list CONTENTS...\)"
-  (let* 
+  (let*
       ((tree '()))
     (with-current-buffer (or buffer (current-buffer))
       (save-excursion
@@ -231,9 +231,9 @@ A proper list is a list ending with a nil cdr, not with an atom "
 
 ;;;; Exploration helpers.
 
-;; These generally call
-;; `elisp-depend-sexp->sym-list', implicitly recursing.  They do not
-;; attempt to skip symbols that are bound by arglists, let forms, etc.
+;; These generally call `elisp-depend-sexp->sym-list', implicitly
+;; recursing.  They do not attempt to skip symbols that are bound
+;; by arglists, let forms, etc.
 
 (defun elisp-depend-get-syms-recurse (sexp n)
   "Gets syms from a form that ignores the first N arguments and
@@ -257,13 +257,13 @@ are mentioned in them."
 
 (defun elisp-depend-let-form->sym-list (sexp)
   "Gets syms from a let form like \(LET ((NAME BODY)...) BODY...\)."
-  
+
   (let*
       ((binding-forms (cadr sexp)))
 
     (append
      (apply #'append
-            (mapcar 
+            (mapcar
              #'(lambda (b-form)
                  (if (consp b-form)
                      (elisp-depend-sexp->sym-list (cadr b-form))
@@ -271,25 +271,25 @@ are mentioned in them."
              binding-forms))
      (elisp-depend-get-syms-recurse (cddr sexp) 0))))
 
-(defconst elisp-depend-special-explorers 
+(defconst elisp-depend-special-explorers
   '(
     (quote ignore)
-    (\` 
+    (\`
      (lambda (sexp)
-       (cons 
+       (cons
         '(func \`)
         (elisp-depend-sexp->sym-list (macroexpand sexp)))))
-    
+
     (provide ignore)
     (require ignore)
-    
+
     (defun elisp-depend-defun-form->sym-list)
     (defmacro elisp-depend-defun-form->sym-list)
     (defvar elisp-depend-defvar-form->sym-list)
     (defconst elisp-depend-defvar-form->sym-list)
     (lambda (lambda (sexp)
               (elisp-depend-get-syms-recurse sexp 2)))
-    
+
     (let elisp-depend-let-form->sym-list)
     (let* elisp-depend-let-form->sym-list)
     )
@@ -302,7 +302,7 @@ return a list of symbols." )
 
 The result omits `defun' and similar built-ins.  The result may
 contain duplicates.  It does not distinguish symbols called as
-functions from variables.  
+functions from variables.
 
 This function does not expand macros."
 
@@ -322,7 +322,7 @@ This function does not expand macros."
                   (assoc functor elisp-depend-special-explorers)))
               (if explorer
                   (funcall (cadr explorer) sexp)
-                (cons 
+                (cons
                  `(func ,functor)
                  (elisp-depend-get-syms-recurse sexp 1))))))
       ;; It's neither symbol nor form, so there are no symbols in it.
@@ -339,7 +339,7 @@ This function does not expand macros."
        (dependencies '()))
     ;; Poor-man's dolist
     (while sym-list
-      (let* 
+      (let*
           (  (el (car sym-list))
              (type (car el))
              (symbol (cadr el))
@@ -370,9 +370,9 @@ This function does not expand macros."
                 ((dentry (assoc filepath dependencies)))
               (if dentry
                   (setcdr dentry (cons symbol (cdr dentry)))
-                (setq dependencies 
-                      (cons 
-                       (cons filepath (list symbol)) 
+                (setq dependencies
+                      (cons
+                       (cons filepath (list symbol))
                        dependencies))))))
       (setq sym-list (cdr sym-list)))
     ;;
@@ -383,7 +383,7 @@ This function does not expand macros."
 If BUFFER is nil, use current buffer.
 If BUILT-IN is non-nil, return built-in library information.
 Return depend map as format: (filepath symbol-A symbol-B symbol-C)."
-  (let* 
+  (let*
       (
        (tree (elisp-depend-read-tree buffer))
        (sym-list (elisp-depend-get-syms-recurse tree 0))
@@ -394,9 +394,9 @@ Return depend map as format: (filepath symbol-A symbol-B symbol-C)."
          (if filename
              (elisp-depend-filename filename)
            nil)
-         built-in 
+         built-in
          nil)))
-    
+
     dependencies))
 
 
@@ -404,25 +404,25 @@ Return depend map as format: (filepath symbol-A symbol-B symbol-C)."
   "Return line in load-history correspoding to PATH-SANS-EXT with
    EXTENSION.
 Return nil if there is none."
-  (assoc 
-   (concat path-sans-ext extension) 
+  (assoc
+   (concat path-sans-ext extension)
    load-history))
 
 (defun elisp-depend-filename (fullpath)
   "Return filename without extension and path.
 FULLPATH is the full path of file."
-  
+
   (let*
-      (  
+      (
        (true-path-sans-ext
         (file-name-sans-extension
          (file-truename fullpath)))
        (file-history
         (cdr
          (or
-          (elisp-depend-get-load-history-line 
+          (elisp-depend-get-load-history-line
            true-path-sans-ext ".elc")
-          (elisp-depend-get-load-history-line 
+          (elisp-depend-get-load-history-line
            true-path-sans-ext ".el"))))
        (lib-name
         (when file-history
@@ -432,7 +432,7 @@ FULLPATH is the full path of file."
     (if lib-name
         (symbol-name lib-name)
       ;;Fallback: Just use the base filename
-      (file-name-sans-extension 
+      (file-name-sans-extension
        (file-name-nondirectory fullpath)))))
 
 (defun elisp-depend-match-built-in-library (fullpath)
