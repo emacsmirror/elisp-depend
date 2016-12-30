@@ -155,8 +155,8 @@ Every library that has a parent directory in
                               (mapconcat #'symbol-name (delete-dups (cdr dep)) ", ")))
                     (elisp-depend-map nil built-in) "\n")))
     (switch-to-buffer (get-buffer-create "*Dependencies*"))
-    (setq truncate-lines nil
-          buffer-read-only nil)
+    (setq truncate-lines nil)
+    (setq buffer-read-only nil)
     (erase-buffer)                         ;with != 0
     (insert dep-table)
     (goto-char (point-min))
@@ -182,8 +182,8 @@ Every library that has a parent directory in
               (insert (format "(require '%s)\n" library-name))
             ;; Otherwise autoload function in `library-name'.
             (dolist (symbol (cdr element))
-              (if (functionp symbol)
-                  (insert (format "(autoload '%s \"%s\")\n" symbol library-name))))))
+              (when (functionp symbol)
+                (insert (format "(autoload '%s \"%s\")\n" symbol library-name))))))
       (message "Doesn't need any extra libraries."))))
 
 ;;;###autoload
@@ -258,10 +258,9 @@ are mentioned in them."
   (let* ((binding-forms (cadr sexp)))
     (append (apply #'append
                    (mapcar
-                    #'(lambda (b-form)
-                        (if (consp b-form)
-                            (elisp-depend-sexp->sym-list (cadr b-form))
-                          '()))
+                    (lambda (b-form)
+                      (and (consp b-form)
+                           (elisp-depend-sexp->sym-list (cadr b-form))))
                     binding-forms))
             (elisp-depend-get-syms-recurse (cddr sexp) 0))))
 
@@ -360,16 +359,12 @@ If BUILT-IN is non-nil, return built-in library information.
 Return depend map as format: (filepath symbol-A symbol-B symbol-C)."
   (let* ((tree (elisp-depend-read-tree buffer))
          (sym-list (elisp-depend-get-syms-recurse tree 0))
-         (filename (buffer-file-name buffer))
-         (dependencies
-          (elisp-depend-sym-list->dependencies
-           sym-list
-           (if filename
-               (elisp-depend-filename filename)
-             nil)
-           built-in
-           nil)))
-    dependencies))
+         (filename (buffer-file-name buffer)))
+    (elisp-depend-sym-list->dependencies
+     sym-list
+     (and filename (elisp-depend-filename filename))
+     built-in
+     nil)))
 
 (defun elisp-depend-get-load-history-line (path-sans-ext extension)
   "Return line in load-history correspoding to PATH-SANS-EXT with
@@ -390,23 +385,23 @@ FULLPATH is the full path of file."
                    (elisp-depend-get-load-history-line
                     true-path-sans-ext ".el"))))
          (lib-name
-          (when file-history
-            (cdr (assq 'provide file-history)))))
+          (and file-history
+               (cdr (assq 'provide file-history)))))
     (if lib-name
         (symbol-name lib-name)
-      ;;Fallback: Just use the base filename
+      ;; Fallback: Just use the base filename.
       (file-name-sans-extension
        (file-name-nondirectory fullpath)))))
 
 (defun elisp-depend-match-built-in-library (fullpath)
   "Return t if FULLPATH match directory with built-in library."
-  (if (or (string-equal (format "%s.el" user-init-file) fullpath)
-          (string-equal (format "%s.elc" user-init-file) fullpath))
-      t                                 ;return t if match `user-init-file'.
+  (if (or (string-equal-p (format "%s.el" user-init-file) fullpath)
+          (string-equal-p (format "%s.elc" user-init-file) fullpath))
+      t ; Return t if match `user-init-file'.
     (catch 'match
       (dolist (directory elisp-depend-directory-list)
-        (if (string-match (expand-file-name directory) fullpath)
-            (throw 'match t)))
+        (when (string-match-p (expand-file-name directory) fullpath)
+          (throw 'match t)))
       nil)))
 
 (provide 'elisp-depend)
