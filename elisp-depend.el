@@ -1,31 +1,14 @@
 ;;; elisp-depend.el --- Parse depend libraries of elisp file.
 
-;; Filename: elisp-depend.el
-;; Description: List library dependencies of an elisp file.
+;; Copyright (C) 2009  Andy Stewart
+;; Copyright (C) 2010-2012 Tom Breton
+
 ;; Authors: Andy Stewart lazycat.manatee@gmail.com
-;; Tom Breton (Tehom) tehom@panix.com
-;; "Michael Heerdegen" <michael_heerdegen@web.de>
-;; Maintainer: Tom Breton (Tehom) tehom@panix.com
-;; Copyright (C) 2009, Andy Stewart, all rights reserved.
-;; Copyright (C) 2010-2012, Tom Breton, all rights reserved.
-;; Created: 2009-01-11 19:40:45
-;; Id: $Id$
-;; Version: 1.0.2
-;; Last-Updated: 26 Apr, 2012
-;;           By: Tom Breton
-;; URL: http://www.emacswiki.org/emacs/download/elisp-depend.el
-;; Keywords: elisp-depend
-;; Compatibility: GNU Emacs 20 ~ GNU Emacs 23
-;;
-;; Features that might be required by this library:
-;;
-;;
-;;
+;;      Tom Breton (Tehom) tehom@panix.com
+;;      Michael Heerdegen <michael_heerdegen@web.de>
 
-;;; This file is NOT part of GNU Emacs
+;; This file is NOT part of GNU Emacs
 
-;;; License
-;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
