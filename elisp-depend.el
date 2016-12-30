@@ -204,7 +204,7 @@ Every library that has a parent directory in
   "Return the tree given by reading the buffer as elisp.
 The top level is presented as a list, as if the buffer contents had been
 \(list CONTENTS...\)"
-  (let* ((tree '()))
+  (let ((tree '()))
     (with-current-buffer (or buffer (current-buffer))
       (save-excursion
         (save-restriction
@@ -255,7 +255,7 @@ are mentioned in them."
 
 (defun elisp-depend-let-form->sym-list (sexp)
   "Gets syms from a let form like \(LET ((NAME BODY)...) BODY...\)."
-  (let* ((binding-forms (cadr sexp)))
+  (let ((binding-forms (cadr sexp)))
     (append (apply #'append
                    (mapcar
                     (lambda (b-form)
@@ -304,7 +304,7 @@ This function does not expand macros."
           (if (not (symbolp functor))
               ;; Functor is a lambda or similar.
               (elisp-depend-get-syms-recurse sexp 0)
-            (let* ((explorer (assoc functor elisp-depend-special-explorers)))
+            (let ((explorer (assoc functor elisp-depend-special-explorers)))
               (if explorer
                   (funcall (cadr explorer) sexp)
                 (cons `(func ,functor)
