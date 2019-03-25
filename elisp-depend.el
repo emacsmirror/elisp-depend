@@ -394,8 +394,8 @@ FULLPATH is the full path of file."
 
 (defun elisp-depend-match-built-in-library (fullpath)
   "Return t if FULLPATH match directory with built-in library."
-  (if (or (string-equal-p (format "%s.el" user-init-file) fullpath)
-          (string-equal-p (format "%s.elc" user-init-file) fullpath))
+  (if (or (string-equal (format "%s.el" user-init-file) fullpath)
+          (string-equal (format "%s.elc" user-init-file) fullpath))
       t ; Return t if match `user-init-file'.
     (catch 'match
       (dolist (directory elisp-depend-directory-list)
